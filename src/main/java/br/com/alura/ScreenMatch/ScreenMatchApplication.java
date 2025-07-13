@@ -3,6 +3,7 @@ package br.com.alura.ScreenMatch;
 import br.com.alura.ScreenMatch.model.Serie;
 import br.com.alura.ScreenMatch.service.ConsumoAPI;
 import br.com.alura.ScreenMatch.service.ConverteDados;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,8 +19,9 @@ public class ScreenMatchApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception{
+		Dotenv dotenv = Dotenv.load();
 		Scanner sc = new Scanner(System.in);
-
+		String apiKey = dotenv.get("API_KEY");
 		System.out.println("Digite o nome do título que deseja consultar");
 		String titulo = sc.nextLine().trim().toLowerCase().replace(" ", "+");
 		String endereco = "https://www.omdbapi.com/?t="+ titulo +"&apikey="+apiKey;
