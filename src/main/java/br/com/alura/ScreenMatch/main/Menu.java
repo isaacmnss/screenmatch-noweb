@@ -10,18 +10,15 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Menu {
     private Scanner scanner = new Scanner(System.in);
     Dotenv dotenv = Dotenv.load();
     private final String API_KEY = dotenv.get("API_KEY");
-    private ConsumoAPI consumoAPI = new ConsumoAPI();
-    private ConverteDados converteDados = new ConverteDados();
+    private final ConsumoAPI consumoAPI = new ConsumoAPI();
+    private final ConverteDados converteDados = new ConverteDados();
 
     public void exibeMenu(){
         System.out.println("Digite o nome da série");
@@ -49,12 +46,17 @@ public class Menu {
         List<EpisodioRecord> episodiosList = temporadaRecords.stream()
                 .flatMap(t -> t.episodioRecordList().stream()).collect(Collectors.toList());
 
-        System.out.println("\n 5 melhores episódios da série");
-        episodiosList.stream()
-                .filter(e -> !e.avaliacao().equalsIgnoreCase("N/A"))
-                .sorted(Comparator.comparing(EpisodioRecord::avaliacao, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
-                .limit(5)
-                .forEach(System.out::println);
+//        System.out.println("\n 10 melhores episódios da série");
+//        episodiosList.stream()
+//                .filter(e -> !e.avaliacao().equalsIgnoreCase("N/A"))
+//                .peek(e -> System.out.println("Filtrando episódios não avaliados" + e))
+//                .sorted(Comparator.comparing(EpisodioRecord::avaliacao).reversed())
+//                .peek(e -> System.out.println("Ordenação por avaliação " + e))
+//                .limit(10)
+//                .peek(e -> System.out.println("limitando ao top 10 " + e))
+//                .map(e -> e.titulo().toUpperCase())
+//                .peek(e -> System.out.println("Mapeamento "+ e))
+//                .forEach(System.out::println);
 
         List<Episodio> episodios = temporadaRecords.stream()
                 .flatMap(t -> t.episodioRecordList().stream()
@@ -63,20 +65,33 @@ public class Menu {
 
         episodios.forEach(System.out::println);
 
-        System.out.println("\nA partir de que ano deseja ver os episódios?");
-        Integer ano = scanner.nextInt();
-        scanner.nextLine();
+        System.out.println("\nDigite o trecho de um título de algum episódio\n");
+        var trechoTitulo = scanner.nextLine();
 
-        LocalDate dataBusca = LocalDate.of(ano, 1, 1);
-
-        DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        episodios.stream()
-                .filter(e -> e.getDataLancamento()!= null && e.getDataLancamento().isAfter(dataBusca))
-                .forEach(e -> System.out.println(
-                        "Temporada: " + e.getTemporada() +
-                                " Episódio: " + e.getTitulo() +
-                                " Data lançamento: " + e.getDataLancamento().format(formatador)
-                ));
+        Optional<Episodio> episodioBuscado = episodios.stream()
+                .filter(e -> e.getTitulo().toLowerCase().contains((trechoTitulo).toLowerCase()))
+                .findFirst();
+        if(episodioBuscado.isPresent()){
+            System.out.println("Episódio encontrado!");
+            System.out.println("Temporada: "+episodioBuscado.get().getTemporada());
+        }else{
+            System.out.println("Episódio não encontrado");
+        }
+//
+//        System.out.println("\nA partir de que ano deseja ver os episódios?");
+//        Integer ano = scanner.nextInt();
+//        scanner.nextLine();
+//
+//        LocalDate dataBusca = LocalDate.of(ano, 1, 1);
+//
+//        DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+//
+//        episodios.stream()
+//                .filter(e -> e.getDataLancamento()!= null && e.getDataLancamento().isAfter(dataBusca))
+//                .forEach(e -> System.out.println(
+//                        "Temporada: " + e.getTemporada() +
+//                                " Episódio: " + e.getTitulo() +
+//                                " Data lançamento: " + e.getDataLancamento().format(formatador)
+//                ));
     }
 }
