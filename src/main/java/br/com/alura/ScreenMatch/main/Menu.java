@@ -1,5 +1,6 @@
 package br.com.alura.ScreenMatch.main;
 
+import br.com.alura.ScreenMatch.model.Episodio;
 import br.com.alura.ScreenMatch.model.EpisodioRecord;
 import br.com.alura.ScreenMatch.model.SerieRecord;
 import br.com.alura.ScreenMatch.model.TemporadaRecord;
@@ -7,6 +8,8 @@ import br.com.alura.ScreenMatch.service.ConsumoAPI;
 import br.com.alura.ScreenMatch.service.ConverteDados;
 import io.github.cdimascio.dotenv.Dotenv;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -27,6 +30,7 @@ public class Menu {
 
 
         String json = consumoAPI.obterDados(endereco);
+        System.out.println(json);
 
         SerieRecord dadosSerieRecord = converteDados.obterDados(json, SerieRecord.class);
         System.out.println(dadosSerieRecord);
@@ -52,6 +56,27 @@ public class Menu {
                 .limit(5)
                 .forEach(System.out::println);
 
+        List<Episodio> episodios = temporadaRecords.stream()
+                .flatMap(t -> t.episodioRecordList().stream()
+                        .map(d-> new Episodio(t.numeroTemporada(), d))
+                ).collect(Collectors.toList());
 
+        episodios.forEach(System.out::println);
+
+        System.out.println("\nA partir de que ano deseja ver os episódios?");
+        Integer ano = scanner.nextInt();
+        scanner.nextLine();
+
+        LocalDate dataBusca = LocalDate.of(ano, 1, 1);
+
+        DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        episodios.stream()
+                .filter(e -> e.getDataLancamento()!= null && e.getDataLancamento().isAfter(dataBusca))
+                .forEach(e -> System.out.println(
+                        "Temporada: " + e.getTemporada() +
+                                " Episódio: " + e.getTitulo() +
+                                " Data lançamento: " + e.getDataLancamento().format(formatador)
+                ));
     }
 }
