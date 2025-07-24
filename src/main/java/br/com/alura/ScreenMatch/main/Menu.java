@@ -1,11 +1,13 @@
 package br.com.alura.ScreenMatch.main;
 
+import br.com.alura.ScreenMatch.model.Serie;
 import br.com.alura.ScreenMatch.model.SerieRecord;
 import br.com.alura.ScreenMatch.model.TemporadaRecord;
 import br.com.alura.ScreenMatch.service.ConsumoAPI;
 import br.com.alura.ScreenMatch.service.ConverteDados;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class Menu {
@@ -15,37 +17,71 @@ public class Menu {
     private final ConsumoAPI consumoAPI = new ConsumoAPI();
     private final ConverteDados converteDados = new ConverteDados();
     private final String ENDERECO = "https://www.omdbapi.com/?t=";
+    List<SerieRecord> serieRecordList = new ArrayList<>();
 
     public void exibeMenu() {
+        var opcao = -1;
         var menu = """
                 1 - Buscar séries
                 2 - Buscar episódios
+                3 - Listar séries buscadas
                 
                 0 - Sair
                 """;
 
+        while (opcao != 0){
+            System.out.println(menu);
+            boolean inputValido = false;
+
+            while (!inputValido) {
+                try {
+                    opcao = scanner.nextInt();
+                    inputValido = true;
+                } catch (InputMismatchException e) {
+                    System.out.println("Opção inválida, tente novamente");
+                    scanner.nextLine();
+                }
+            }
+
+            scanner.nextLine();
+
+            switch (opcao) {
+                case 1:
+                    buscarSerieWeb();
+                    break;
+                case 2:
+                    buscarEpisodioPorSerie();
+                    break;
+                case 3:
+                    listarSeriesBuscadas();
+                    break;
+                case 0:
+                    System.out.println("Saindo...");
+                    break;
+                default:
+                    System.out.println("Opção inválida, tente novamente");
+            }
+        }
+
         System.out.println(menu);
-        var opcao = scanner.nextInt();
         scanner.nextLine();
 
-        switch (opcao) {
-            case 1:
-                buscarSerieWeb();
-                break;
-            case 2:
-                buscarEpisodioPorSerie();
-                break;
-            case 0:
-                System.out.println("Saindo...");
-                break;
-            default:
-                System.out.println("Opção inválida");
-        }
     }
 
     private void buscarSerieWeb() {
         SerieRecord dados = getDadosSerie();
+        serieRecordList.add(dados);
         System.out.println(dados);
+    }
+
+    private void listarSeriesBuscadas(){
+        List<Serie> series = new ArrayList<>();
+        series = serieRecordList.stream()
+                .map(d -> new Serie(d))
+                .collect(Collectors.toList());
+        series.stream()
+                .sorted(Comparator.comparing(Serie::getGenero))
+                .forEach(System.out::println);
     }
 
     private SerieRecord getDadosSerie() {
