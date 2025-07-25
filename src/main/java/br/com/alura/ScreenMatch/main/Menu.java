@@ -3,9 +3,12 @@ package br.com.alura.ScreenMatch.main;
 import br.com.alura.ScreenMatch.model.Serie;
 import br.com.alura.ScreenMatch.model.SerieRecord;
 import br.com.alura.ScreenMatch.model.TemporadaRecord;
+import br.com.alura.ScreenMatch.repository.SerieRepository;
 import br.com.alura.ScreenMatch.service.ConsumoAPI;
 import br.com.alura.ScreenMatch.service.ConverteDados;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,6 +21,12 @@ public class Menu {
     private final ConverteDados converteDados = new ConverteDados();
     private final String ENDERECO = "https://www.omdbapi.com/?t=";
     List<SerieRecord> serieRecordList = new ArrayList<>();
+
+    private SerieRepository repositorio;
+
+    public Menu(SerieRepository repositorio) {
+        this.repositorio = repositorio;
+    }
 
     public void exibeMenu() {
         var opcao = -1;
@@ -70,15 +79,14 @@ public class Menu {
 
     private void buscarSerieWeb() {
         SerieRecord dados = getDadosSerie();
-        serieRecordList.add(dados);
+        Serie serie = new Serie(dados);
+       // serieRecordList.add(dados);
+        repositorio.save(serie);
         System.out.println(dados);
     }
 
     private void listarSeriesBuscadas(){
-        List<Serie> series = new ArrayList<>();
-        series = serieRecordList.stream()
-                .map(d -> new Serie(d))
-                .collect(Collectors.toList());
+        List<Serie> series = repositorio.findAll();
         series.stream()
                 .sorted(Comparator.comparing(Serie::getGenero))
                 .forEach(System.out::println);
